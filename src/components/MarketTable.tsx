@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -8,7 +8,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Coin } from '../types';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface MarketTableProps {
@@ -16,21 +16,101 @@ interface MarketTableProps {
   onSelectCoin?: (coin: Coin) => void;
 }
 
+type SortKey = 'symbol' | 'price' | 'change24h' | 'volume24h' | 'marketCap';
+type SortOrder = 'asc' | 'desc' | null;
+
 export default function MarketTable({ coins, onSelectCoin }: MarketTableProps) {
+  const [sortKey, setSortKey] = useState<SortKey>('marketCap');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      if (sortOrder === 'desc') setSortOrder('asc');
+      else if (sortOrder === 'asc') setSortOrder(null);
+      else setSortOrder('desc');
+    } else {
+      setSortKey(key);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedCoins = useMemo(() => {
+    if (!sortOrder || !sortKey) return coins;
+
+    return [...coins].sort((a, b) => {
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc' 
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+  }, [coins, sortKey, sortOrder]);
+
+  const SortIndicator = ({ id }: { id: SortKey }) => {
+    if (sortKey !== id || !sortOrder) return <ArrowUpDown className="ml-2 h-3 w-3 opacity-30" />;
+    return sortOrder === 'asc' 
+      ? <ChevronUp className="ml-2 h-3 w-3 text-primary" /> 
+      : <ChevronDown className="ml-2 h-3 w-3 text-primary" />;
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-border">
-            <TableHead className="w-[200px]">Asset</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-right">24h Change</TableHead>
-            <TableHead className="text-right hidden sm:table-cell">24h Volume</TableHead>
-            <TableHead className="text-right hidden md:table-cell">Market Cap</TableHead>
+            <TableHead 
+              className="w-[200px] cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => handleSort('symbol')}
+            >
+              <div className="flex items-center">
+                Asset <SortIndicator id="symbol" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="text-right cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => handleSort('price')}
+            >
+              <div className="flex items-center justify-end">
+                Price <SortIndicator id="price" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="text-right cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => handleSort('change24h')}
+            >
+              <div className="flex items-center justify-end">
+                24h Change <SortIndicator id="change24h" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="text-right hidden sm:table-cell cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => handleSort('volume24h')}
+            >
+              <div className="flex items-center justify-end">
+                24h Volume <SortIndicator id="volume24h" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="text-right hidden md:table-cell cursor-pointer hover:text-foreground transition-colors"
+              onClick={() => handleSort('marketCap')}
+            >
+              <div className="flex items-center justify-end">
+                Market Cap <SortIndicator id="marketCap" />
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {coins.map((coin) => (
+          {sortedCoins.map((coin) => (
             <TableRow 
               key={coin.id} 
               className="cursor-pointer hover:bg-secondary/50 border-border transition-colors"
@@ -56,7 +136,7 @@ export default function MarketTable({ coins, onSelectCoin }: MarketTableProps) {
               )}>
                 <div className="flex items-center justify-end gap-1">
                   {coin.change24h >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {Math.abs(coin.change24h)}%
+                  {Math.abs(coin.change24h).toFixed(2)}%
                 </div>
               </TableCell>
               <TableCell className="text-right text-muted-foreground hidden sm:table-cell font-mono">

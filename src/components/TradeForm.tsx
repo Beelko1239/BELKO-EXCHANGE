@@ -14,8 +14,8 @@ export default function TradeForm() {
       <CardContent className="p-4">
         <Tabs defaultValue="buy" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="buy" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Buy</TabsTrigger>
-            <TabsTrigger value="sell" className="data-[state=active]:bg-rose-500 data-[state=active]:text-white">Sell</TabsTrigger>
+            <TabsTrigger value="buy" className="data-active:bg-emerald-500 data-active:text-white">Buy</TabsTrigger>
+            <TabsTrigger value="sell" className="data-active:bg-rose-500 data-active:text-white">Sell</TabsTrigger>
           </TabsList>
           
           <TabsContent value="buy" className="space-y-4">

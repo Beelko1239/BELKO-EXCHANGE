@@ -6,6 +6,8 @@ import OrderBook from './components/OrderBook';
 import TradeForm from './components/TradeForm';
 import WalletView from './components/WalletView';
 import SecurityView from './components/SecurityView';
+import P2PView from './components/P2PView';
+import AuthView from './components/AuthView';
 import { MOCK_COINS } from './constants';
 import { Coin } from './types';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -13,28 +15,46 @@ import { TrendingUp, TrendingDown, Activity, Users, BarChart3 } from 'lucide-rea
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedCoin, setSelectedCoin] = useState<Coin>(MOCK_COINS[0]);
   const [coins, setCoins] = useState<Coin[]>(MOCK_COINS);
 
-  // Simulate real-time price updates
+  // WebSocket connection for real-time price updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCoins(prevCoins => 
-        prevCoins.map(coin => {
-          const change = (Math.random() - 0.5) * (coin.price * 0.001);
-          const newPrice = coin.price + change;
-          return {
-            ...coin,
-            price: newPrice,
-            change24h: coin.change24h + (Math.random() - 0.5) * 0.1
-          };
-        })
-      );
-    }, 3000);
+    if (!isAuthenticated) return;
 
-    return () => clearInterval(interval);
-  }, []);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('Connected to Price Feed');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'INITIAL_STATE' || message.type === 'PRICE_UPDATE') {
+          setCoins(message.data);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from Price Feed');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [isAuthenticated]);
 
   // Update selected coin when coins state updates
   useEffect(() => {
@@ -153,12 +173,18 @@ export default function App() {
         );
       case 'wallet':
         return <WalletView />;
+      case 'p2p':
+        return <P2PView />;
       case 'security':
         return <SecurityView />;
       default:
         return <div className="flex items-center justify-center h-full text-muted-foreground italic">Coming Soon...</div>;
     }
   };
+
+  if (!isAuthenticated) {
+    return <AuthView onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>

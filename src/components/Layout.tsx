@@ -9,7 +9,10 @@ import {
   Menu,
   Bell,
   Search,
-  User
+  User,
+  Users,
+  ExternalLink,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -40,9 +43,17 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'markets', label: 'Markets', icon: TrendingUp },
+    { id: 'p2p', label: 'P2P Trading', icon: Users },
     { id: 'wallet', label: 'Wallet', icon: Wallet },
     { id: 'security', label: 'Security', icon: ShieldCheck },
     { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
+  const externalExchanges = [
+    { name: 'Binance', url: 'https://www.binance.com' },
+    { name: 'Bitget', url: 'https://www.bitget.com' },
+    { name: 'Bybit', url: 'https://www.bybit.com' },
+    { name: 'Telegram Wallet', url: 'https://t.me/wallet', icon: MessageCircle },
   ];
 
   return (
@@ -56,23 +67,45 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           <h1 className="font-bold text-xl tracking-tight">BELKO <span className="text-muted-foreground font-light">EX</span></h1>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                activeTab === item.id 
-                  ? "bg-secondary text-foreground" 
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-              )}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-4 py-4 space-y-1">
+            <p className="px-3 mb-2 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Menu</p>
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  activeTab === item.id 
+                    ? "bg-secondary text-foreground" 
+                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                )}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="px-4 py-4 space-y-1">
+            <p className="px-3 mb-2 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">External Platforms</p>
+            {externalExchanges.map((exchange) => (
+              <a
+                key={exchange.name}
+                href={exchange.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  {exchange.icon ? <exchange.icon className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
+                  {exchange.name}
+                </div>
+                <ExternalLink className="w-3 h-3 opacity-50" />
+              </a>
+            ))}
+          </div>
+        </div>
 
         <div className="p-4 border-t border-border">
           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
@@ -88,10 +121,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-4 md:hidden">
             <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="w-5 h-5" />
-                </Button>
+              <SheetTrigger render={<Button variant="ghost" size="icon" />}>
+                <Menu className="w-5 h-5" />
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0 bg-card border-r border-border">
                 <SheetHeader className="p-6 text-left border-b border-border">
@@ -102,25 +133,47 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                     <span className="font-bold text-xl tracking-tight">BELKO <span className="text-muted-foreground font-light">EX</span></span>
                   </SheetTitle>
                 </SheetHeader>
-                <nav className="flex-1 px-4 py-4 space-y-1">
-                  {navItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                        activeTab === item.id 
-                          ? "bg-secondary text-foreground" 
-                          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </button>
-                  ))}
-                </nav>
+                <div className="flex-1 overflow-y-auto">
+                  <nav className="px-4 py-4 space-y-1">
+                    <p className="px-3 mb-2 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Menu</p>
+                    {navItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                          activeTab === item.id 
+                            ? "bg-secondary text-foreground" 
+                            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                        )}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </button>
+                    ))}
+                  </nav>
+                  
+                  <div className="px-4 py-4 space-y-1">
+                    <p className="px-3 mb-2 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">External Platforms</p>
+                    {externalExchanges.map((exchange) => (
+                      <a
+                        key={exchange.name}
+                        href={exchange.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          {exchange.icon ? <exchange.icon className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
+                          {exchange.name}
+                        </div>
+                        <ExternalLink className="w-3 h-3 opacity-50" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </SheetContent>
             </Sheet>
             <h1 className="font-bold text-lg">BELKO</h1>
@@ -141,8 +194,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             </Button>
             
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-1 rounded-full hover:bg-secondary">
+              <DropdownMenuTrigger render={<Button variant="ghost" className="flex items-center gap-2 pl-2 pr-1 rounded-full hover:bg-secondary" />}>
+                <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="w-4 h-4" />
                   </div>
@@ -150,7 +203,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                     <p className="text-xs font-medium">beletewoldu2</p>
                     <p className="text-[10px] text-muted-foreground">Verified</p>
                   </div>
-                </Button>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
